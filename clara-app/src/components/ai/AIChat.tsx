@@ -6,7 +6,7 @@ import AIMessage from './AIMessage';
 // Define message types
 interface Message {
   id: string;
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'agent' | 'patient';
   content: string;
   timestamp: Date;
 }
@@ -16,6 +16,7 @@ export default function AIChat() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeRole, setActiveRole] = useState<'user' | 'agent'>('user');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -33,10 +34,10 @@ export default function AIChat() {
     
     if (!input.trim()) return;
     
-    // Create user message
+    // Create user message with the selected role
     const userMessage: Message = {
       id: Date.now().toString(),
-      role: 'user',
+      role: activeRole,
       content: input,
       timestamp: new Date(),
     };
@@ -55,7 +56,7 @@ export default function AIChat() {
         },
         body: JSON.stringify({
           messages: [...messages, userMessage].map(msg => ({
-            role: msg.role,
+            role: msg.role === 'patient', // Map 'patient' to 'user' for OpenAI API
             content: msg.content,
           })),
         }),
@@ -68,20 +69,25 @@ export default function AIChat() {
       
       const data = await response.json();
       
-      // Create assistant message from response
-      const assistantMessage: Message = {
-        id: Date.now().toString() + '-assistant',
-        role: 'assistant',
+      // Create agent message from response
+      const agentMessage: Message = {
+        id: Date.now().toString() + '-agent',
+        role: 'agent',
         content: data.content,
         timestamp: new Date(),
       };
       
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages(prev => [...prev, agentMessage]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Toggle between roles
+  const toggleRole = () => {
+    setActiveRole(prev => prev === 'user' ? 'patient' : 'user');
   };
 
   return (
@@ -101,11 +107,11 @@ export default function AIChat() {
           
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-gray-200 text-gray-700 rounded-lg p-3 max-w-[70%]">
+              <div className="bg-red-200 text-red-700 rounded-lg p-3 max-w-[70%] rounded-bl-none">
                 <div className="flex space-x-2">
-                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
                 </div>
               </div>
             </div>
@@ -123,26 +129,57 @@ export default function AIChat() {
       
       {/* Message Input */}
       <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200 bg-white">
-        <div className="flex space-x-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 p-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={isLoading}
-          />
-          <button
-            type="submit"
-            className={`px-4 py-2 rounded-full ${
-              isLoading || !input.trim()
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-blue-500 text-white hover:bg-blue-600'
-            }`}
-            disabled={isLoading || !input.trim()}
-          >
-            Send
-          </button>
+        <div className="flex flex-col space-y-2">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium">Role:</span>
+              <button
+                type="button"
+                onClick={toggleRole}
+                className={`px-3 py-1 text-xs rounded-full ${
+                  activeRole === 'user'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200 text-gray-700'
+                }`}
+              >
+                Caregiver
+              </button>
+              <button
+                type="button"
+                onClick={toggleRole}
+                className={`px-3 py-1 text-xs rounded-full ${
+                  activeRole === 'agent'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-200 text-gray-700'
+                }`}
+              >
+                Chat
+              </button>
+            </div>
+          </div>
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type a message..."
+              className="flex-1 p-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isLoading}
+            />
+            <button
+              type="submit"
+              className={`px-4 py-2 rounded-full ${
+                isLoading || !input.trim()
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : activeRole === 'user'
+                    ? 'bg-blue-500 text-white hover:bg-blue-600'
+                    : 'bg-green-500 text-white hover:bg-red-600'
+              }`}
+              disabled={isLoading || !input.trim()}
+            >
+              Send
+            </button>
+          </div>
         </div>
       </form>
     </div>
