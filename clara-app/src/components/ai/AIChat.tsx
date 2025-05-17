@@ -85,7 +85,7 @@ export default function AIChat() {
   };
 
   return (
-    <div className="flex flex-col h-[100vh] border border-gray-200 rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full border border-gray-200 rounded-lg overflow-hidden">
       {/* Messages Container */}
       <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
         <div className="space-y-4">
