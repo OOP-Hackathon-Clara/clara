@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ContactBar from './ContactBar';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
@@ -22,8 +22,40 @@ export default function ChatInterface() {
     },
   ]);
 
-  const handleSendMessage = (text: string) => {
-    // Add user message
+  // Fetch messages from our API
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch('/api/message');
+      const data = await response.json();
+      
+      if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+        // Convert string timestamps back to Date objects
+        const formattedMessages = data.messages.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+        
+        setMessages(formattedMessages);
+      }
+    } catch (error) {
+      console.error('Failed to fetch messages:', error);
+    }
+  };
+  
+  // Poll for new messages every 3 seconds
+  useEffect(() => {
+    // Initial fetch
+    fetchMessages();
+    
+    // Set up polling
+    const intervalId = setInterval(fetchMessages, 3000);
+    
+    // Clean up on unmount
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const handleSendMessage = async (text: string) => {
+    // Create user message
     const userMessage: Message = {
       id: Date.now().toString(),
       text,
@@ -31,18 +63,59 @@ export default function ChatInterface() {
       timestamp: new Date(),
     };
     
+    // Optimistically update UI
     setMessages((prev) => [...prev, userMessage]);
     
-    // Simulate response (in a real app, this would be from Twilio)
-    setTimeout(() => {
-      const responseMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: 'Thanks for your message! This is a simulated response.',
-        sender: 'other',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, responseMessage]);
-    }, 1000);
+    try {
+      // Send user message to our API
+      await fetch('/api/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text,
+          sender: 'user',
+        }),
+      });
+      
+      // Send to GPT Chat API
+      const gptResponse = await fetch('/api/gptchat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'user',
+              content: text,
+            },
+          ],
+        }),
+      });
+      
+      const gptData = await gptResponse.json();
+      
+      if (gptData.content) {
+        // Add GPT response to our message store
+        await fetch('/api/message', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text: gptData.content,
+            sender: 'other',
+          }),
+        });
+        
+        // Fetch updated messages
+        fetchMessages();
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
 
   return (
