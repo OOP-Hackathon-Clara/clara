@@ -48,20 +48,32 @@ export default function AIChat() {
     setError(null);
     
     try {
-      // Call API route to send message to GPT Chat
-      const response = await fetch('/api/gptchat', {
+      // // Call API route to send message to GPT Chat
+      // const response = await fetch('/api/gptchat', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({
+      //     messages: [...messages, userMessage].map(msg => ({
+      //       role: msg.role === 'patient', // Map 'patient' to 'user' for OpenAI API
+      //       content: msg.content,
+      //     })),
+      //   }),
+      // });
+      const response = await fetch('/api/imessage', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [...messages, userMessage].map(msg => ({
-            role: msg.role === 'patient', // Map 'patient' to 'user' for OpenAI API
-            content: msg.content,
-          })),
+          // messages: [...messages, userMessage].map(msg => ({
+            recipient: "6138000000",
+            message: "test",
+          // })),
         }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to get response from GPT Chat');
@@ -87,7 +99,7 @@ export default function AIChat() {
 
   // Toggle between roles
   const toggleRole = () => {
-    setActiveRole(prev => prev === 'user' ? 'patient' : 'user');
+    setActiveRole(prev => prev === 'user' ? 'agent' : 'user');
   };
 
   return (
@@ -142,18 +154,18 @@ export default function AIChat() {
                     : 'bg-gray-200 text-gray-700'
                 }`}
               >
-                Caregiver
+                I want to talk to Dad
               </button>
               <button
                 type="button"
                 onClick={toggleRole}
                 className={`px-3 py-1 text-xs rounded-full ${
                   activeRole === 'agent'
-                    ? 'bg-green-500 text-white'
+                    ? 'bg-red-500 text-white'
                     : 'bg-gray-200 text-gray-700'
                 }`}
               >
-                Chat
+                I need a break
               </button>
             </div>
           </div>
@@ -163,19 +175,23 @@ export default function AIChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type a message..."
-              className="flex-1 p-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isLoading}
+              className={`flex-1 p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                activeRole === 'agent' 
+                  ? 'bg-gray-200 border-gray-200 text-gray-400 cursor-not-allowed' 
+                  : 'border-gray-300'
+              }`}
+              disabled={isLoading || activeRole === 'agent'}
             />
             <button
               type="submit"
               className={`px-4 py-2 rounded-full ${
-                isLoading || !input.trim()
+                isLoading || !input.trim() || activeRole === 'agent'
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : activeRole === 'user'
                     ? 'bg-blue-500 text-white hover:bg-blue-600'
-                    : 'bg-green-500 text-white hover:bg-red-600'
+                    : 'bg-red-500 text-white hover:bg-red-600'
               }`}
-              disabled={isLoading || !input.trim()}
+              disabled={isLoading || !input.trim() || activeRole === 'agent'}
             >
               Send
             </button>
