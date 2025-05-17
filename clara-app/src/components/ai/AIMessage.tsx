@@ -3,14 +3,17 @@
 interface MessageProps {
   message: {
     id: string;
-    role: 'user' | 'assistant' | 'system';
+    role: 'user' | 'agent' | 'patient';
     content: string;
     timestamp: Date;
   };
 }
 
 export default function AIMessage({ message }: MessageProps) {
-  const isUser = message.role === 'user';
+  // Determine the role type
+  const isCaregiver = message.role === 'user';
+  const isPatient = message.role === 'patient';
+  const isChat = message.role === 'agent';
   
   // Format the timestamp
   const formatTime = (date: Date) => {
@@ -22,21 +25,27 @@ export default function AIMessage({ message }: MessageProps) {
 
   return (
     <div
-      className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
+      className={`flex ${isPatient ? 'justify-start' : 'justify-end'}`}
       data-message-id={message.id}
       data-role={message.role}
     >
       <div
         className={`max-w-[70%] rounded-lg px-4 py-2 ${
-          isUser
+          isCaregiver
             ? 'bg-blue-500 text-white rounded-br-none'
-            : 'bg-white border border-gray-200 rounded-bl-none'
+            : isPatient
+              ? 'bg-green-500 text-white rounded-bl-none'
+              : 'bg-red-500 text-white rounded-bl-none' // isChat (agent)
         }`}
       >
         <div className="whitespace-pre-wrap">{message.content}</div>
         <div
           className={`text-xs mt-1 ${
-            isUser ? 'text-blue-100' : 'text-gray-500'
+            isCaregiver 
+              ? 'text-blue-100' 
+              : isPatient
+                ? 'text-green-100'
+                : 'text-red-100' // isChat
           } text-right`}
         >
           {formatTime(message.timestamp)}
