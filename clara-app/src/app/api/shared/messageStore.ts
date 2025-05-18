@@ -2,7 +2,7 @@
 export interface Message {
   id: string;
   content: string;
-  role: 'user' | 'agent' | 'patient' | 'caregiver';
+  role: 'user' | 'agent' | 'contact' | 'caregiver';
   timestamp: Date;
 }
 
