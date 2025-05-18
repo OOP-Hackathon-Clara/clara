@@ -4,6 +4,7 @@ import { useState, FormEvent, useRef, useEffect, useCallback } from 'react';
 import { AIMessage } from '.';
 import { getAudioStreamer, TranscriptionResult } from '@/app/api/shared/audioStreamer';
 import MicrophoneButton from './MicrophoneButton';
+import toast, { Toaster } from 'react-hot-toast';
 
 // Define message types
 interface Message {
@@ -20,8 +21,10 @@ export default function AIChat() {
   const [activeRole, setActiveRole] = useState<'user' | 'agent'>('user');
   const [isSettingMode, setIsSettingMode] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isToastListening, setIsToastListening] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const toastIdRef = useRef<string | null>(null);
   
   // Handle transcription results from the microphone
   const handleTranscription = useCallback((result: TranscriptionResult) => {
@@ -30,6 +33,21 @@ export default function AIChat() {
       if (result.isFinal) {
         setInput(prev => prev + (prev ? ' ' : '') + result.transcript);
         setIsListening(false);
+      }
+    }
+  }, []);
+  
+  // Handle transcription results from the toast microphone
+  const handleToastTranscription = useCallback((result: TranscriptionResult) => {
+    if (result.transcript) {
+      // If it's a final result, append it to the input field
+      if (result.isFinal) {
+        setInput(prev => prev + (prev ? ' ' : '') + result.transcript);
+        setIsToastListening(false);
+        if (toastIdRef.current) {
+          toast.dismiss(toastIdRef.current);
+          toastIdRef.current = null;
+        }
       }
     }
   }, []);
@@ -108,7 +126,7 @@ export default function AIChat() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to get response from receive message endpoint');
+        throw new Error(errorData.error || 'Failed to get response from GPT Chat');
       }
       
       const data = await response.json();
@@ -117,6 +135,57 @@ export default function AIChat() {
     }
   };
 
+  // Show toast with microphone for agent mode
+  const showMicrophoneToast = () => {
+    // Dismiss any existing toast
+    if (toastIdRef.current) {
+      toast.dismiss(toastIdRef.current);
+    }
+    
+    // Create a new toast with microphone button
+    const id = toast(
+      (t) => (
+        <div className="flex items-center gap-3">
+          <span>Add context about your interactions with Dad</span>
+          <button
+            onClick={() => {
+              setIsToastListening(!isToastListening);
+            }}
+            className={`p-2 rounded-full ${isToastListening ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>
+          </button>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              toastIdRef.current = null;
+            }}
+            className="p-2 rounded-full hover:bg-gray-200"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      ),
+      {
+        duration: 60000, // 1 minute
+        position: 'top-center',
+        style: {
+          borderRadius: '10px',
+          background: '#fff',
+          color: '#333',
+          padding: '16px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+        },
+      }
+    );
+    
+    toastIdRef.current = id;
+  };
+  
   // Set mode function to send requests to set_mode endpoint
   const setMode = async (isAgent: boolean) => {
     setIsSettingMode(true);
@@ -125,6 +194,15 @@ export default function AIChat() {
       
       // First update the local state for immediate UI feedback
       setActiveRole(newRole);
+      
+      // Show microphone toast if switching to agent mode
+      if (isAgent) {
+        showMicrophoneToast();
+      } else if (toastIdRef.current) {
+        // Dismiss toast if switching to user mode
+        toast.dismiss(toastIdRef.current);
+        toastIdRef.current = null;
+      }
       
       // Then send the request to the server
       const response = await fetch('/api/set_mode', {
@@ -154,8 +232,35 @@ export default function AIChat() {
     }
   };
 
+  // Effect to handle toast microphone
+  useEffect(() => {
+    let audioStreamer: ReturnType<typeof getAudioStreamer> | null = null;
+    
+    if (isToastListening) {
+      audioStreamer = getAudioStreamer();
+      audioStreamer.startListening(
+        handleToastTranscription,
+        (error: Error) => {
+          console.error('Speech recognition error:', error);
+          setIsToastListening(false);
+          if (toastIdRef.current) {
+            toast.dismiss(toastIdRef.current);
+            toastIdRef.current = null;
+          }
+        }
+      );
+    }
+    
+    return () => {
+      if (audioStreamer) {
+        audioStreamer.stopListening();
+      }
+    };
+  }, [isToastListening, handleToastTranscription]);
+
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-gray-50 to-gray-100 shadow-xl rounded-lg overflow-hidden">
+      <Toaster />
       {/* Chat Header - Messenger style */}
       <div className="bg-white border-b border-gray-200 shadow-sm px-4 py-3 flex items-center">
         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden mr-3">
@@ -223,7 +328,7 @@ export default function AIChat() {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            Have Clara take over
+            I need a break
           </button>
         </div>
       </div>
@@ -242,7 +347,7 @@ export default function AIChat() {
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
               <MicrophoneButton 
                 onTranscription={handleTranscription}
-                disabled={activeRole === 'agent'}
+                disabled={false}
                 className="p-1 rounded-full text-gray-400 hover:text-blue-500 focus:outline-none transition-colors"
               />
             </div>
@@ -267,4 +372,4 @@ export default function AIChat() {
       </form>
     </div>
   );
-} 
+}
