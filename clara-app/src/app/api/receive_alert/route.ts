@@ -23,17 +23,9 @@ export async function POST(request: NextRequest) {
   });
 }
 
-// Also handle GET requests for testing and polling
-export async function GET() {
-  console.log('TEST: Received GET request to alert endpoint');
-  
-  const currentTime = new Date();
-  const lastAlertTimeStr = lastAlertTime.toISOString();
-  
-  return NextResponse.json({ 
-    success: true, 
-    message: 'Alert endpoint is working',
-    lastAlert: lastAlertTimeStr,
-    currentTime: currentTime.toISOString()
+export async function GET(request: NextRequest) {
+  // Return the last alert time
+  return NextResponse.json({
+    lastAlert: lastAlertTime.toISOString()
   });
 }

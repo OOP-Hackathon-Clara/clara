@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { AIChat, WelcomeScreen, PopupAlert } from '.';
-import { onAlert, startAlertPolling, simulateAlert } from '@/services/alertService';
+import { onAlert, startAlertPolling, simulateAlert, triggerAlert } from '@/services/alertService';
 
 export default function AIChatWrapper() {
   const [showWelcome, setShowWelcome] = useState(true);
@@ -39,6 +39,11 @@ export default function AIChatWrapper() {
     simulateAlert();
   };
 
+  // Direct trigger for popup without API call
+  const handleDirectTrigger = () => {
+    setShowAlert(true);
+  };
+
   return (
     <>
       {showWelcome ? (
@@ -46,15 +51,6 @@ export default function AIChatWrapper() {
       ) : (
         <>
           <AIChat />
-          
-          {/* Hidden test button in corner */}
-          <button 
-            onClick={handleTestAlert}
-            className="fixed bottom-4 right-4 bg-gray-200 p-2 rounded-full opacity-50 hover:opacity-100"
-            title="Test Alert"
-          >
-            🔔
-          </button>
         </>
       )}
       

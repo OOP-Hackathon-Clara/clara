@@ -18,7 +18,7 @@ export default function PopupAlert({ isOpen, onClose }: PopupAlertProps) {
       talkToDadButton.click();
     }
     
-    // Close the popup
+    // Close the popup and set showAlert to false in the parent component
     onClose();
   };
 

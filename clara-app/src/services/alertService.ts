@@ -27,6 +27,7 @@ export function onAlert(listener: AlertListener): () => void {
  * Notify all listeners of a new alert
  */
 function notifyListeners(): void {
+  console.log(`Notifying ${listeners.length} listeners of new alert`);
   listeners.forEach(listener => listener());
 }
 
@@ -80,15 +81,21 @@ export function startAlertPolling(intervalMs: number = 5000): () => void {
  */
 export async function simulateAlert(): Promise<void> {
   try {
-    await fetch('/api/receive_alert', {
+    console.log('Simulating alert via API call...');
+    const response = await fetch('/api/receive_alert', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
     });
     
-    // Notify listeners immediately without waiting for the next poll
-    notifyListeners();
+    if (response.ok) {
+      console.log('Alert API call successful, notifying listeners');
+      // Notify listeners immediately without waiting for the next poll
+      notifyListeners();
+    } else {
+      console.error('Alert API call failed:', await response.text());
+    }
   } catch (error) {
     console.error('Error simulating alert:', error);
   }
@@ -96,5 +103,6 @@ export async function simulateAlert(): Promise<void> {
 
 // Export a function to manually trigger the alert (for testing)
 export function triggerAlert(): void {
+  console.log('Manually triggering alert notification');
   notifyListeners();
 } 
