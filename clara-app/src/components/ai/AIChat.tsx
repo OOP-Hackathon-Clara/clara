@@ -14,7 +14,6 @@ interface Message {
 export default function AIChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeRole, setActiveRole] = useState<'user' | 'agent'>('user');
   
@@ -44,33 +43,17 @@ export default function AIChat() {
     
     setMessages(prev => [...prev, userMessage]);
     setInput('');
-    setIsLoading(true);
     setError(null);
     
     try {
-      // // Call API route to send message to GPT Chat
-      // const response = await fetch('/api/gptchat', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     messages: [...messages, userMessage].map(msg => ({
-      //       role: msg.role === 'patient', // Map 'patient' to 'user' for OpenAI API
-      //       content: msg.content,
-      //     })),
-      //   }),
-      // });
       const response = await fetch('/api/imessage', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          // messages: [...messages, userMessage].map(msg => ({
             recipient: "6138000000",
-            message: "test",
-          // })),
+            message: userMessage.content,
         }),
       });
 
@@ -80,20 +63,8 @@ export default function AIChat() {
       }
       
       const data = await response.json();
-      
-      // Create agent message from response
-      const agentMessage: Message = {
-        id: Date.now().toString() + '-agent',
-        role: 'agent',
-        content: data.content,
-        timestamp: new Date(),
-      };
-      
-      setMessages(prev => [...prev, agentMessage]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -116,19 +87,7 @@ export default function AIChat() {
           {messages.map((message) => (
             <AIMessage key={message.id} message={message} />
           ))}
-          
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-red-200 text-red-700 rounded-lg p-3 max-w-[70%] rounded-bl-none">
-                <div className="flex space-x-2">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-                </div>
-              </div>
-            </div>
-          )}
-          
+                    
           {error && (
             <div className="bg-red-100 text-red-700 p-3 rounded-lg">
               Error: {error}
@@ -180,18 +139,18 @@ export default function AIChat() {
                   ? 'bg-gray-200 border-gray-200 text-gray-400 cursor-not-allowed' 
                   : 'border-gray-300'
               }`}
-              disabled={isLoading || activeRole === 'agent'}
+              disabled={activeRole === 'agent'}
             />
             <button
               type="submit"
               className={`px-4 py-2 rounded-full ${
-                isLoading || !input.trim() || activeRole === 'agent'
+                !input.trim() || activeRole === 'agent'
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : activeRole === 'user'
                     ? 'bg-blue-500 text-white hover:bg-blue-600'
                     : 'bg-red-500 text-white hover:bg-red-600'
               }`}
-              disabled={isLoading || !input.trim() || activeRole === 'agent'}
+              disabled={!input.trim() || activeRole === 'agent'}
             >
               Send
             </button>
