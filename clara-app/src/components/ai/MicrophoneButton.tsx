@@ -4,11 +4,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { getAudioStreamer, TranscriptionResult } from '@/app/api/shared/audioStreamer';
 
 interface MicrophoneButtonProps {
-  onTranscription: (text: string) => void;
+  onTranscription: (result: TranscriptionResult) => void;
   disabled?: boolean;
+  className?: string;
 }
 
-export default function MicrophoneButton({ onTranscription, disabled = false }: MicrophoneButtonProps) {
+export default function MicrophoneButton({ onTranscription, disabled = false, className = '' }: MicrophoneButtonProps) {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -17,9 +18,11 @@ export default function MicrophoneButton({ onTranscription, disabled = false }: 
   const handleTranscription = useCallback((result: TranscriptionResult) => {
     setTranscript(result.transcript);
     
-    // If this is a final result, send it to the parent component
+    // Send the result to the parent component
+    onTranscription(result);
+    
+    // If this is a final result, reset and stop listening
     if (result.isFinal) {
-      onTranscription(result.transcript);
       // Reset the transcript if it's final
       setTranscript('');
       // Stop listening after receiving final result
@@ -72,12 +75,14 @@ export default function MicrophoneButton({ onTranscription, disabled = false }: 
         type="button"
         onClick={toggleListening}
         disabled={disabled}
-        className={`p-3 rounded-full flex items-center justify-center ${
+        className={`flex items-center justify-center ${
+          className ? className : 'p-3 rounded-full'
+        } ${
           isListening 
-            ? 'bg-red-500 text-white animate-pulse' 
+            ? 'text-red-500 animate-pulse' 
             : disabled 
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-              : 'bg-blue-500 text-white hover:bg-blue-600'
+              ? 'text-gray-300 cursor-not-allowed' 
+              : 'hover:text-blue-600'
         }`}
         title={isListening ? 'Stop listening' : 'Start listening'}
       >

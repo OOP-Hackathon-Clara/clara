@@ -5,7 +5,7 @@ import { Message, addMessage } from '../shared/messageStore';
 interface IMessageRequest {
   recipient: string;
   message: string;
-  role?: 'caregiver' | 'patient' | 'agent';
+  role?: 'caregiver' | 'contact' | 'agent';
 }
 
 interface IMessageResponse {

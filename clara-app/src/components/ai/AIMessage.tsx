@@ -3,7 +3,7 @@
 interface MessageProps {
   message: {
     id: string;
-    role: 'user' | 'agent' | 'patient';
+    role: 'user' | 'agent' | 'contact';
     content: string;
     timestamp: Date;
   };
@@ -12,7 +12,7 @@ interface MessageProps {
 export default function AIMessage({ message }: MessageProps) {
   // Determine the role type
   const isCaregiver = message.role === 'user';
-  const isPatient = message.role === 'patient';
+  const isPatient = message.role === 'contact';
   const isChat = message.role === 'agent';
   
   // Format the timestamp
