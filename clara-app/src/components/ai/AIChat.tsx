@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent, useRef, useEffect, useCallback } from 'react';
-import { AIMessage } from '.';
+import AIMessage from './AIMessage';
 import { getAudioStreamer, TranscriptionResult } from '@/app/api/shared/audioStreamer';
 import MicrophoneButton from './MicrophoneButton';
 import toast, { Toaster } from 'react-hot-toast';
