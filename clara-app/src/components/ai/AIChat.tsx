@@ -23,7 +23,10 @@ export default function AIChat() {
   const [isListening, setIsListening] = useState(false);
   const [showAgentModePopup, setShowAgentModePopup] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showAudioPopup, setShowAudioPopup] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -125,11 +128,55 @@ export default function AIChat() {
     }
   };
 
+  // Timer effect for call duration
+  useEffect(() => {
+    if (showAudioPopup) {
+      // Reset timer when popup opens
+      setCallDuration(0);
+      
+      // Set up interval to increment timer every second
+      timerRef.current = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+    } else {
+      // Clear interval when popup closes
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [showAudioPopup]);
+
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const playAudio = () => {
     try {
-      audioRef.current?.play();
+      if (audioRef.current) {
+        setIsPlaying(true);
+        setShowAudioPopup(true);
+        audioRef.current.play();
+        
+        // Add event listener to detect when audio ends
+        audioRef.current.onended = () => {
+          setIsPlaying(false);
+          setShowAudioPopup(false);
+        };
+      }
     } catch (err) {
       console.error('Playback failed:', err);
+      setIsPlaying(false);
+      setShowAudioPopup(false);
     }
   };
 
@@ -216,7 +263,7 @@ export default function AIChat() {
         <div>
           <audio ref={audioRef} src="/audio/ai_interaction.mp3" />
           <button onClick={playAudio}
-                    className={`w-10 h-10 rounded-full ${isPlaying ? 'bg-red-200 text-red-500' : 'bg-gray-200 text-blue-500'} flex items-center justify-center hover:bg-gray-300 transition-colors shadow-md`}>
+                    className={`w-10 h-10 rounded-full ${isPlaying ? 'bg-red-200 text-red-500' : 'bg-gray-200 text-red-500'} flex items-center justify-center hover:bg-gray-300 transition-colors shadow-md`}>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
             </svg>
@@ -330,6 +377,35 @@ export default function AIChat() {
         onClose={() => setShowAgentModePopup(false)}
         onSetMode={setMode}
       />
+
+      {/* Audio Playing Popup */}
+      {showAudioPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 shadow-xl max-w-md w-full">
+            <div className="flex flex-col items-center">
+              <div className="w-16 h-16 mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+              </div>
+              <p className="text-gray-700 text-center mb-4 font-mono text-xl">{formatTime(callDuration)}</p>
+              <button 
+                onClick={() => {
+                  if (audioRef.current) {
+                    audioRef.current.pause();
+                    audioRef.current.currentTime = 0;
+                  }
+                  setIsPlaying(false);
+                  setShowAudioPopup(false);
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+              >
+                End Call
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
