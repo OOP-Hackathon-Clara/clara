@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getMode, setMode } from '@/lib/mode';
 
 // Define the request body type
 interface SetModeRequest {
   agent: boolean;
 }
+
+// Simple in-memory storage for the mode
+// In a production app, this would be stored in a database
+let currentMode = { agent: false };
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,13 +22,13 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Update the current mode using the shared manager
-    setMode({ agent: body.agent });
+    // Update the current mode
+    currentMode = { agent: body.agent };
     
     // Return the updated mode
     return NextResponse.json({ 
       success: true, 
-      mode: getMode() 
+      mode: currentMode 
     });
     
   } catch (error) {
@@ -39,5 +42,5 @@ export async function POST(request: NextRequest) {
 
 // GET endpoint to retrieve the current mode
 export async function GET() {
-  return NextResponse.json({ mode: getMode() });
+  return NextResponse.json({ mode: currentMode });
 } 

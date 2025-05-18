@@ -16,6 +16,7 @@ export default function AIChat() {
   const [input, setInput] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [activeRole, setActiveRole] = useState<'user' | 'agent'>('user');
+  const [isSettingMode, setIsSettingMode] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -102,9 +103,41 @@ export default function AIChat() {
     }
   };
 
-  // Toggle between roles
-  const toggleRole = () => {
-    setActiveRole(prev => prev === 'user' ? 'agent' : 'user');
+  // Set mode function to send requests to set_mode endpoint
+  const setMode = async (isAgent: boolean) => {
+    setIsSettingMode(true);
+    try {
+      const newRole = isAgent ? 'agent' : 'user';
+      
+      // First update the local state for immediate UI feedback
+      setActiveRole(newRole);
+      
+      // Then send the request to the server
+      const response = await fetch('/api/set_mode', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          agent: isAgent
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to set mode');
+      }
+      
+      // Optional: You can handle the response data if needed
+      const data = await response.json();
+      console.log('Mode set successfully:', data);
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred while setting mode');
+      console.error('Error setting mode:', err);
+    } finally {
+      setIsSettingMode(false);
+    }
   };
 
   return (
@@ -152,22 +185,28 @@ export default function AIChat() {
         <div className="flex justify-center space-x-3 mb-2">
           <button
             type="button"
-            onClick={() => setActiveRole('user')}
+            onClick={() => setMode(false)}
+            disabled={isSettingMode || activeRole === 'user'}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               activeRole === 'user'
                 ? 'bg-blue-500 text-white shadow-md'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : isSettingMode 
+                  ? 'bg-gray-300 text-gray-500 cursor-wait'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
             I want to talk to Dad
           </button>
           <button
             type="button"
-            onClick={() => setActiveRole('agent')}
+            onClick={() => setMode(true)}
+            disabled={isSettingMode || activeRole === 'agent'}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               activeRole === 'agent'
                 ? 'bg-red-500 text-white shadow-md'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : isSettingMode 
+                  ? 'bg-gray-300 text-gray-500 cursor-wait'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
             I need a break
