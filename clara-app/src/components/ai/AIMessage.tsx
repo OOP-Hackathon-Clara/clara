@@ -13,7 +13,7 @@ export default function AIMessage({ message }: MessageProps) {
   // Determine the role type
   const isCaregiver = message.role === 'user';
   const isPatient = message.role === 'contact';
-  const isChat = message.role === 'agent';
+  const isAgent = message.role === 'agent';
   
   // Format the timestamp
   const formatTime = (date: Date) => {
@@ -25,22 +25,16 @@ export default function AIMessage({ message }: MessageProps) {
 
   return (
     <div
-      className={`flex items-end ${isCaregiver ? 'justify-end' : 'justify-start'} mb-4`}
+      className={`flex items-end ${isCaregiver || isAgent ? 'justify-end' : 'justify-start'} mb-4`}
       data-message-id={message.id}
       data-role={message.role}
     >
-      {/* Avatar for non-caregiver messages */}
-      {!isCaregiver && (
+      {/* Avatar for patient messages only */}
+      {isPatient && (
         <div className="flex-shrink-0 h-8 w-8 rounded-full overflow-hidden mr-2 mb-1">
-          {isPatient ? (
-            <div className="bg-green-100 h-full w-full flex items-center justify-center">
-              <span className="text-green-500 font-semibold text-xs">D</span>
-            </div>
-          ) : (
-            <div className="bg-red-100 h-full w-full flex items-center justify-center">
-              <span className="text-red-500 font-semibold text-xs">AI</span>
-            </div>
-          )}
+          <div className="bg-green-100 h-full w-full flex items-center justify-center">
+            <span className="text-green-500 font-semibold text-xs">D</span>
+          </div>
         </div>
       )}
 
@@ -51,10 +45,10 @@ export default function AIMessage({ message }: MessageProps) {
               ? 'bg-blue-500 text-white rounded-br-none shadow-md'
               : isPatient
                 ? 'bg-green-500 text-white rounded-bl-none shadow-md'
-                : 'bg-red-100 text-gray-800 rounded-bl-none shadow-md' // isChat (agent)
+                : 'bg-gray-200 text-gray-800 rounded-bl-none shadow-md' // Agent messages (gray)
           }`}
         >
-          <div className="whitespace-pre-wrap text-sm">{message.content}</div>
+          <div className={`whitespace-pre-wrap text-sm ${isAgent ? 'italic' : ''}`}>{message.content}</div>
         </div>
         
         <div
@@ -71,6 +65,15 @@ export default function AIMessage({ message }: MessageProps) {
         <div className="flex-shrink-0 h-8 w-8 rounded-full overflow-hidden ml-2 mb-1">
           <div className="bg-blue-100 h-full w-full flex items-center justify-center">
             <span className="text-blue-500 font-semibold text-xs">C</span>
+          </div>
+        </div>
+      )}
+      
+      {/* Avatar for agent messages */}
+      {isAgent && (
+        <div className="flex-shrink-0 h-8 w-8 rounded-full overflow-hidden ml-2 mb-1">
+          <div className="bg-gray-100 h-full w-full flex items-center justify-center">
+            <span className="text-gray-500 font-semibold text-xs">AI</span>
           </div>
         </div>
       )}
