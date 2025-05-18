@@ -7,12 +7,7 @@ export const metadata = {
 
 export default function AIPage() {
   return (
-    <div className="w-screen h-screen flex flex-col bg-gray-100">
-      {/* Simple header bar with just the name "Dad" */}
-      <div className="bg-white p-4 shadow-sm text-center">
-        <h1 className="text-lg font-medium">Dad</h1>
-      </div>
-      
+    <div className="w-screen h-screen flex flex-col bg-gray-100">      
       {/* Chat wrapper taking up the rest of the space */}
       <div className="flex-1">
         <AIChatWrapper />

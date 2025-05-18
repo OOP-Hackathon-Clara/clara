@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent, useRef, useEffect } from 'react';
-import AIMessage from './AIMessage';
+import { AIMessage } from '.';
 
 // Define message types
 interface Message {
@@ -108,13 +108,23 @@ export default function AIChat() {
   };
 
   return (
-    <div className="flex flex-col h-full border border-gray-200 rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full bg-gradient-to-b from-gray-50 to-gray-100 shadow-xl rounded-lg overflow-hidden">
+      {/* Chat Header - Messenger style */}
+      <div className="bg-white border-b border-gray-200 shadow-sm px-4 py-3 flex items-center">
+        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden mr-3">
+          <span className="text-blue-500 font-semibold text-lg">D</span>
+        </div>
+        <div>
+          <h2 className="font-semibold text-gray-800">Dad</h2>
+        </div>
+      </div>
+      
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-        <div className="space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-gray-50 to-gray-100">
+        <div className="space-y-4 max-w-3xl mx-auto">
           {messages.length === 0 && (
-            <div className="text-center text-gray-500 py-8">
-              Send a message to start a conversation with the AI.
+            <div className="rounded-lg p-4 text-center text-gray-500">
+              No messages yet. Start a conversation with Dad.
             </div>
           )}
           
@@ -123,8 +133,13 @@ export default function AIChat() {
           ))}
                     
           {error && (
-            <div className="bg-red-100 text-red-700 p-3 rounded-lg">
-              Error: {error}
+            <div className="bg-red-100 text-red-700 p-3 rounded-lg shadow">
+              <div className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Error: {error}
+              </div>
             </div>
           )}
           
@@ -132,63 +147,70 @@ export default function AIChat() {
         </div>
       </div>
       
+      {/* Role Selection Bar */}
+      <div className="bg-white border-t border-gray-200 px-4 py-2">
+        <div className="flex justify-center space-x-3 mb-2">
+          <button
+            type="button"
+            onClick={() => setActiveRole('user')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              activeRole === 'user'
+                ? 'bg-blue-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            I want to talk to Dad
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveRole('agent')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              activeRole === 'agent'
+                ? 'bg-red-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            I need a break
+          </button>
+        </div>
+      </div>
+      
       {/* Message Input */}
-      <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200 bg-white">
-        <div className="flex flex-col space-y-2">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium">Role:</span>
-              <button
-                type="button"
-                onClick={toggleRole}
-                className={`px-3 py-1 text-xs rounded-full ${
-                  activeRole === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-200 text-gray-700'
-                }`}
-              >
-                I want to talk to Dad
-              </button>
-              <button
-                type="button"
-                onClick={toggleRole}
-                className={`px-3 py-1 text-xs rounded-full ${
-                  activeRole === 'agent'
-                    ? 'bg-red-500 text-white'
-                    : 'bg-gray-200 text-gray-700'
-                }`}
-              >
-                I need a break
-              </button>
-            </div>
-          </div>
-          <div className="flex space-x-2">
+      <form onSubmit={handleSubmit} className="p-4 bg-white border-t border-gray-200">
+        <div className="flex items-center space-x-2 max-w-3xl mx-auto">
+          <div className="flex-1 relative">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type a message..."
-              className={`flex-1 p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                activeRole === 'agent' 
-                  ? 'bg-gray-200 border-gray-200 text-gray-400 cursor-not-allowed' 
-                  : 'border-gray-300'
-              }`}
-              disabled={activeRole === 'agent'}
+              placeholder={activeRole === 'agent' ? "Add more information about your interactions with Dad today..." : "Type a message..."}
+              className="w-full p-3 pr-12 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm"
             />
             <button
-              type="submit"
-              className={`px-4 py-2 rounded-full ${
-                !input.trim() || activeRole === 'agent'
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : activeRole === 'user'
-                    ? 'bg-blue-500 text-white hover:bg-blue-600'
-                    : 'bg-red-500 text-white hover:bg-red-600'
-              }`}
-              disabled={!input.trim() || activeRole === 'agent'}
+              type="button"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full text-gray-400 hover:text-blue-500"
             >
-              Send
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              </svg>
             </button>
           </div>
+          
+          <button
+            type="submit"
+            disabled={!input.trim()}
+            className={`p-3 rounded-full ${
+              !input.trim()
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : activeRole === 'agent'
+                  ? 'bg-red-500 text-white hover:bg-red-600 shadow-md'
+                  : 'bg-blue-500 text-white hover:bg-blue-600 shadow-md'
+            } transition-colors`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+          </button>
         </div>
       </form>
     </div>

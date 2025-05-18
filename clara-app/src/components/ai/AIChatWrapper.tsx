@@ -1,10 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import AIChat from './AIChat';
+import { AIChat, WelcomeScreen } from '.';
 
 export default function AIChatWrapper() {
-  // This wrapper component is used to handle client-side functionality
-  // and avoid hydration issues with server components
+  const [showWelcome, setShowWelcome] = useState(true);
+  
+  const handleGetStarted = () => {
+    setShowWelcome(false);
+  };
+
+  if (showWelcome) {
+    return <WelcomeScreen onGetStarted={handleGetStarted} />;
+  }
+  
   return <AIChat />;
 } 
