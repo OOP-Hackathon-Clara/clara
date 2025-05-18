@@ -189,7 +189,7 @@ export default function AIChat() {
       // First update the local state for immediate UI feedback
       setActiveRole(newRole);
       
-      // If switching to user mode (talking to Dad), call the summarize endpoint
+      // If switching to user mode (talking to Mom), call the summarize endpoint
       if (!isAgent && messages.length > 0) {
         // Format messages for the summarize endpoint
         const formattedMessages = messages.map(msg => ({
@@ -254,10 +254,10 @@ export default function AIChat() {
       <div className="bg-white border-b border-gray-200 shadow-sm px-4 py-3 flex items-center justify-between">
         <div className="flex items-center">
           <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden mr-3">
-            <span className="text-blue-500 font-semibold text-lg">D</span>
+            <span className="text-blue-500 font-semibold text-lg">M</span>
           </div>
           <div>
-            <h2 className="font-semibold text-gray-800">Dad</h2>
+            <h2 className="font-semibold text-gray-800">Mom</h2>
           </div>
         </div>
         <div>
@@ -276,7 +276,7 @@ export default function AIChat() {
         <div className="space-y-4 max-w-3xl mx-auto">
           {messages.length === 0 && (
             <div className="rounded-lg p-4 text-center text-gray-500">
-              No messages yet. Start a conversation with Dad.
+              No messages yet. Start a conversation with Mom.
             </div>
           )}
           
@@ -288,7 +288,7 @@ export default function AIChat() {
             <div className="bg-red-100 text-red-700 p-3 rounded-lg shadow">
               <div className="flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 Error: {error}
               </div>
@@ -314,7 +314,7 @@ export default function AIChat() {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            I want to talk to Dad
+            Talk to Mom
           </button>
           <button
             type="button"
@@ -328,7 +328,7 @@ export default function AIChat() {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            I need a break
+            Let Clara Take Over
           </button>
         </div>
       </div>
@@ -341,14 +341,15 @@ export default function AIChat() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={activeRole === 'agent' ? "Add more information about your interactions with Dad today..." : "Type a message..."}
-              className="w-full p-3 pr-12 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm"
+              disabled={activeRole === 'agent'}
+              placeholder={activeRole === 'agent' ? "Clara will respond to Mom for you..." : "Type a message..."}
+              className={`w-full p-3 pr-12 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm ${activeRole === 'agent' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
             />
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
               <MicrophoneButton 
                 onTranscription={handleTranscription}
-                disabled={false}
-                className="p-1 rounded-full text-gray-400 hover:text-blue-500 focus:outline-none transition-colors"
+                disabled={activeRole === 'agent'}
+                className={`p-1 rounded-full ${activeRole === 'agent' ? 'text-gray-300' : 'text-gray-400 hover:text-blue-500'} focus:outline-none transition-colors`}
               />
             </div>
           </div>

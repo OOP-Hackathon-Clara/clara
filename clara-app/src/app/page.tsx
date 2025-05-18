@@ -1,8 +1,8 @@
 import AIChatWrapper from '@/components/ai/AIChatWrapper';
 
 export const metadata = {
-  title: 'Chat with Dad - Clara App',
-  description: 'Chat with Dad using AI',
+  title: 'Chat with Mom - Clara App',
+  description: 'Chat with Mom using AI',
 };
 
 export default function AIPage() {

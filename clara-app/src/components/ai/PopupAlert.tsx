@@ -11,11 +11,11 @@ export default function PopupAlert({ isOpen, onClose }: PopupAlertProps) {
   if (!isOpen) return null;
 
   const handleStepBackIn = () => {
-    // Find and click the "I want to talk to Dad" button
-    const talkToDadButton = document.querySelector('button[type="button"]:not([disabled])') as HTMLButtonElement | null;
+    // Find and click the "I want to talk to Mom" button
+    const talkToMomButton = document.querySelector('button[type="button"]:not([disabled])') as HTMLButtonElement | null;
     
-    if (talkToDadButton && talkToDadButton.textContent?.includes('I want to talk to Dad')) {
-      talkToDadButton.click();
+    if (talkToMomButton && talkToMomButton.textContent?.includes('I want to talk to Mom')) {
+      talkToMomButton.click();
     }
     
     // Close the popup and set showAlert to false in the parent component

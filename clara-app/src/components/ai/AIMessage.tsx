@@ -33,7 +33,7 @@ export default function AIMessage({ message }: MessageProps) {
       {isPatient && (
         <div className="flex-shrink-0 h-8 w-8 rounded-full overflow-hidden mr-2 mb-1">
           <div className="bg-green-100 h-full w-full flex items-center justify-center">
-            <span className="text-green-500 font-semibold text-xs">D</span>
+            <span className="text-green-500 font-semibold text-xs">M</span>
           </div>
         </div>
       )}

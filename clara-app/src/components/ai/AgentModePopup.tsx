@@ -97,7 +97,7 @@ export default function AgentModePopup({ isOpen, onClose, onSetMode }: AgentMode
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-4">Agent Mode</h2>
           <p className="text-gray-600 mb-6">
-            You're about to enter agent mode. Please provide context about your interactions with Dad today.
+            You're about to enter agent mode. Please provide context about your interactions with Mom today.
           </p>
           
           {/* Microphone Button */}
