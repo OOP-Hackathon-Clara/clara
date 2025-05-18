@@ -94,7 +94,7 @@ export default function AIChat() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to get response from GPT Chat');
+        throw new Error(errorData.error || 'Failed to get response from receive message endpoint');
       }
       
       const data = await response.json();
