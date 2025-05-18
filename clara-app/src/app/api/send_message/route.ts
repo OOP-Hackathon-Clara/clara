@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Message, addMessage } from '../shared/messageStore';
 
 // Define your request and response types
 interface IMessageRequest {
@@ -75,9 +76,21 @@ export async function POST(req: NextRequest) {
       responseData = { success: true };
     }
 
+    // Add the sent message to our shared message store
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      content: requestData.message,
+      role: requestData.role || 'user',
+      timestamp: new Date(),
+    };
+    
+    // Add to our shared message store
+    addMessage(newMessage);
+    
     // Return the successful response
     return NextResponse.json({
       success: true,
+      messageId: newMessage.id,
       ...responseData
     });
     

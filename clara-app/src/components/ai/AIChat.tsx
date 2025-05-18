@@ -19,6 +19,40 @@ export default function AIChat() {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Fetch messages from API
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch('/api/receive_message');
+      if (!response.ok) throw new Error('Failed to fetch messages');
+      
+      const data = await response.json();
+      
+      if (data.messages && Array.isArray(data.messages)) {
+        // Convert string timestamps back to Date objects
+        const formattedMessages = data.messages.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+        
+        setMessages(formattedMessages);
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+  
+  // Initial fetch and polling setup
+  useEffect(() => {
+    // Initial fetch
+    fetchMessages();
+    
+    // Set up polling every 3 seconds
+    const intervalId = setInterval(fetchMessages, 3000);
+    
+    // Clean up on unmount
+    return () => clearInterval(intervalId);
+  }, []);
+  
   // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();

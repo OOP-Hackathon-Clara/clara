@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Message, messageStore, addMessage, getAllMessages } from '../shared/messageStore';
 
 // In a real application, you would use a database to store messages
 // This is a simple in-memory store for demonstration purposes
 // Note: This will reset when the server restarts
-let messageStore: {
-  id: string;
-  text: string;
-  sender: 'user' | 'other';
-  timestamp: Date;
-}[] = [];
 
 export async function POST(req: NextRequest) {
   try {
-    const { text, sender = 'other' } = await req.json();
+    const { text, role = 'patient' } = await req.json();
 
     if (!text || typeof text !== 'string') {
       return NextResponse.json(
@@ -21,24 +16,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate sender
-    if (sender !== 'user' && sender !== 'other') {
+    // Validate role
+    if (role !== 'patient' && role !== 'agent' && role !== 'caregiver' && role !== 'user') {
       return NextResponse.json(
-        { error: 'Sender must be either "user" or "other"' },
+        { error: 'Role must be either "patient", "agent", "caregiver", or "user"' },
         { status: 400 }
       );
     }
 
     // Create a new message
-    const newMessage = {
+    const newMessage: Message = {
       id: Date.now().toString(),
-      text,
-      sender,
+      content: text,
+      role: role as 'user' | 'agent' | 'patient' | 'caregiver',
       timestamp: new Date(),
     };
 
-    // Add to our message store
-    messageStore.push(newMessage);
+    // Add to our shared message store
+    addMessage(newMessage);
 
     return NextResponse.json({
       success: true,
@@ -55,8 +50,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  // Return all messages
+  // Return all messages from the shared store
   return NextResponse.json({
-    messages: messageStore,
+    messages: getAllMessages(),
   });
 }
