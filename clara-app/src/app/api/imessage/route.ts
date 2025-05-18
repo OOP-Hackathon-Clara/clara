@@ -14,7 +14,7 @@ interface IMessageResponse {
 }
 
 // The specific endpoint URL
-const SMS_ENDPOINT = 'https://d8e8-184-23-234-162.ngrok-free.app/sms';
+const SMS_ENDPOINT = 'https://clara.loca.lt/sms';
 
 export async function POST(req: NextRequest) {
   try {
