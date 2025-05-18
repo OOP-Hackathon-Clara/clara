@@ -22,6 +22,8 @@ export default function AIChat() {
   const [isSettingMode, setIsSettingMode] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [showAgentModePopup, setShowAgentModePopup] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -132,6 +134,37 @@ export default function AIChat() {
       // First update the local state for immediate UI feedback
       setActiveRole(newRole);
       
+      // If switching to user mode (talking to Dad), call the summarize endpoint
+      if (!isAgent && messages.length > 0) {
+        // Format messages for the summarize endpoint
+        const formattedMessages = messages.map(msg => ({
+          text: msg.content,
+          role: msg.role
+        }));
+        
+        try {
+          // Call the summarize endpoint
+          const summaryResponse = await fetch('/api/summarize', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              messages: formattedMessages
+            }),
+          });
+          
+          if (summaryResponse.ok) {
+            const summaryData = await summaryResponse.json();
+            console.log(`Conversation summary: ${summaryData.summary}`);
+          } else {
+            console.error('Failed to get conversation summary');
+          }
+        } catch (summaryError) {
+          console.error(`Error getting conversation summary: ${summaryError}`);
+        }
+      }
+      
       // Then send the request to the server
       const response = await fetch('/api/set_mode', {
         method: 'POST',
@@ -159,19 +192,65 @@ export default function AIChat() {
     }
   };
 
-
+  // Initialize audio element
+  useEffect(() => {
+    audioRef.current = new Audio('/ai_interaction.mp3');
+    
+    // Add event listeners
+    if (audioRef.current) {
+      audioRef.current.addEventListener('play', () => setIsPlaying(true));
+      audioRef.current.addEventListener('pause', () => setIsPlaying(false));
+      audioRef.current.addEventListener('ended', () => setIsPlaying(false));
+    }
+    
+    // Cleanup
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.removeEventListener('play', () => setIsPlaying(true));
+        audioRef.current.removeEventListener('pause', () => setIsPlaying(false));
+        audioRef.current.removeEventListener('ended', () => setIsPlaying(false));
+      }
+    };
+  }, []);
+  
+  // Function to handle phone call button click
+  const handlePhoneCall = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      } else {
+        audioRef.current.play().catch(error => {
+          console.error('Error playing audio:', error);
+        });
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-gray-50 to-gray-100 shadow-xl rounded-lg overflow-hidden">
 
       {/* Chat Header - Messenger style */}
-      <div className="bg-white border-b border-gray-200 shadow-sm px-4 py-3 flex items-center">
-        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden mr-3">
-          <span className="text-blue-500 font-semibold text-lg">D</span>
+      <div className="bg-white border-b border-gray-200 shadow-sm px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center">
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden mr-3">
+            <span className="text-blue-500 font-semibold text-lg">D</span>
+          </div>
+          <div>
+            <h2 className="font-semibold text-gray-800">Dad</h2>
+          </div>
         </div>
-        <div>
-          <h2 className="font-semibold text-gray-800">Dad</h2>
-        </div>
+        <button
+          type="button"
+          onClick={handlePhoneCall}
+          className={`w-10 h-10 rounded-full ${isPlaying ? 'bg-red-200 text-red-500' : 'bg-gray-200 text-blue-500'} flex items-center justify-center hover:bg-gray-300 transition-colors shadow-md`}
+          aria-label={isPlaying ? "End call" : "Call Dad"}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          </svg>
+        </button>
       </div>
       
       {/* Messages Container */}
