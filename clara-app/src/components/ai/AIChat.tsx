@@ -223,7 +223,7 @@ export default function AIChat() {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            I need a break
+            Have Clara take over
           </button>
         </div>
       </div>

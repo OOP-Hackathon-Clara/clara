@@ -10,12 +10,24 @@ interface PopupAlertProps {
 export default function PopupAlert({ isOpen, onClose }: PopupAlertProps) {
   if (!isOpen) return null;
 
+  const handleStepBackIn = () => {
+    // Find and click the "I want to talk to Dad" button
+    const talkToDadButton = document.querySelector('button[type="button"]:not([disabled])') as HTMLButtonElement | null;
+    
+    if (talkToDadButton && talkToDadButton.textContent?.includes('I want to talk to Dad')) {
+      talkToDadButton.click();
+    }
+    
+    // Close the popup
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
       <div className="relative bg-white rounded-lg p-6 shadow-xl max-w-md w-full m-4 z-10">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium">Alert</h3>
+          <h3 className="text-lg font-medium text-red-500">Alert: Your loved one seems agitated.</h3>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-500 focus:outline-none"
@@ -27,16 +39,16 @@ export default function PopupAlert({ isOpen, onClose }: PopupAlertProps) {
         </div>
         <div className="py-4">
           <p className="text-gray-600">
-            New alert received!
+          I've noticed signs of distress in their recent messages. When you're available, please consider joining the conversation to offer comfort or reassurance.
           </p>
         </div>
         <div className="mt-5 sm:mt-6">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleStepBackIn}
             className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm"
           >
-            Close
+            Step back in
           </button>
         </div>
       </div>
