@@ -12,6 +12,7 @@ export default function WelcomeScreen({ onGetStarted }: WelcomeScreenProps) {
   const [transcript, setTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [showTranscript, setShowTranscript] = useState(false);
+  const [isSettingMode, setIsSettingMode] = useState(false);
   
   // Handle transcription results
   const handleTranscription = useCallback((result: TranscriptionResult) => {
@@ -50,6 +51,44 @@ export default function WelcomeScreen({ onGetStarted }: WelcomeScreenProps) {
       console.error('Error starting microphone:', err);
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
       setIsListening(false);
+    }
+  };
+  
+  // Function to set the mode before proceeding
+  const handleGetStarted = async () => {
+    setIsSettingMode(true);
+    try {
+      // Set mode to 'user' (not agent) by default
+      const isAgent = false;
+      
+      // Send request to the server to set mode
+      const response = await fetch('/api/set_mode', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          agent: isAgent
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to set mode');
+      }
+      
+      // Optional: You can handle the response data if needed
+      const data = await response.json();
+      console.log('Mode set successfully:', data);
+      
+      // Continue with the original onGetStarted function
+      onGetStarted();
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred while setting mode');
+      console.error('Error setting mode:', err);
+    } finally {
+      setIsSettingMode(false);
     }
   };
   
@@ -113,10 +152,15 @@ export default function WelcomeScreen({ onGetStarted }: WelcomeScreenProps) {
           
           <button
             type="button"
-            onClick={onGetStarted}
-            className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors shadow-md"
+            onClick={handleGetStarted}
+            disabled={isSettingMode}
+            className={`inline-flex items-center px-4 py-2 ${
+              isSettingMode 
+                ? 'bg-gray-400 cursor-wait' 
+                : 'bg-blue-500 hover:bg-blue-600'
+            } text-white rounded-full transition-colors shadow-md`}
           >
-            Get Started
+            {isSettingMode ? 'Setting up...' : 'Get Started'}
           </button>
         </div>
       </div>

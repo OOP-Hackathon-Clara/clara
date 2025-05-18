@@ -197,27 +197,27 @@ export default function AIChat() {
           role: msg.role
         }));
         
-        try {
-          // Call the summarize endpoint
-          const summaryResponse = await fetch('/api/summarize', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              messages: formattedMessages
-            }),
-          });
+        // try {
+        //   // Call the summarize endpoint
+        //   const summaryResponse = await fetch('/api/summarize', {
+        //     method: 'POST',
+        //     headers: {
+        //       'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({
+        //       messages: formattedMessages
+        //     }),
+        //   });
           
-          if (summaryResponse.ok) {
-            const summaryData = await summaryResponse.json();
-            console.log(`Conversation summary: ${summaryData.summary}`);
-          } else {
-            console.error('Failed to get conversation summary');
-          }
-        } catch (summaryError) {
-          console.error(`Error getting conversation summary: ${summaryError}`);
-        }
+        //   if (summaryResponse.ok) {
+        //     const summaryData = await summaryResponse.json();
+        //     console.log(`Conversation summary: ${summaryData.summary}`);
+        //   } else {
+        //     console.error('Failed to get conversation summary');
+        //   }
+        // } catch (summaryError) {
+        //   console.error(`Error getting conversation summary: ${summaryError}`);
+        // }
       }
       
       // Then send the request to the server
