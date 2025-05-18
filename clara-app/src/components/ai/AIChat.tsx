@@ -46,7 +46,7 @@ export default function AIChat() {
     setError(null);
     
     try {
-      const response = await fetch('/api/imessage', {
+      const response = await fetch('/api/send_message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
